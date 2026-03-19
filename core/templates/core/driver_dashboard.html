@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Driver Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        h1, h2 { color: #333; }
+        .card { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 4px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        .badge-scheduled { background: #ffc107; }
+        .badge-active { background: #28a745; color: white; }
+        .badge-completed { background: #6c757d; color: white; }
+        .badge-cancelled { background: #dc3545; color: white; }
+        nav { background: #343a40; padding: 10px 20px; margin: -20px -20px 20px -20px; }
+        nav a { color: white; text-decoration: none; margin-right: 20px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/dashboard/driver/">Dashboard</a>
+        <a href="/api/auth/logout/" onclick="fetch('/api/auth/logout/', {method:'POST'})">Logout</a>
+    </nav>
+
+    <h1>Welcome, {{ user.username }}</h1>
+
+    <div class="card">
+        <h2>Create New Trip</h2>
+        <form method="POST" action="/dashboard/trips/create/">
+            {% csrf_token %}
+            <label>Start Node:</label>
+            <select name="start_node">
+                {% for node in nodes %}
+                <option value="{{ node.id }}">{{ node.name }}</option>
+                {% endfor %}
+            </select>
+            &nbsp;
+            <label>End Node:</label>
+            <select name="end_node">
+                {% for node in nodes %}
+                <option value="{{ node.id }}">{{ node.name }}</option>
+                {% endfor %}
+            </select>
+            &nbsp;
+            <label>Max Passengers:</label>
+            <input type="number" name="max_passengers" value="3" min="1" max="10" style="width:60px;">
+            &nbsp;
+            <button type="submit" class="btn btn-primary">Create Trip</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>My Trips</h2>
+        {% if trips %}
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Status</th>
+                <th>Max Passengers</th>
+                <th>Actions</th>
+            </tr>
+            {% for trip in trips %}
+            <tr>
+                <td>{{ trip.id }}</td>
+                <td>{{ trip.start_node.name }}</td>
+                <td>{{ trip.end_node.name }}</td>
+                <td><span class="badge badge-{{ trip.status }}">{{ trip.status }}</span></td>
+                <td>{{ trip.max_passengers }}</td>
+                <td>
+                    <a href="/dashboard/trips/{{ trip.id }}/requests/" class="btn btn-primary">View Requests</a>
+                    {% if trip.status == 'scheduled' %}
+                    <form method="POST" action="/dashboard/trips/{{ trip.id }}/cancel/" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Cancel</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No trips yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

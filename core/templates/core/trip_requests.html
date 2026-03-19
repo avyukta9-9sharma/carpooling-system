@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trip Requests</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        h1, h2 { color: #333; }
+        .card { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 4px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; }
+        nav { background: #343a40; padding: 10px 20px; margin: -20px -20px 20px -20px; }
+        nav a { color: white; text-decoration: none; margin-right: 20px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/dashboard/driver/">Dashboard</a>
+    </nav>
+
+    <h1>Incoming Requests for Trip #{{ trip.id }}</h1>
+    <p>Route: {{ trip.start_node.name }} → {{ trip.end_node.name }}</p>
+
+    <div class="card">
+        <h2>Update Current Node</h2>
+        <form method="POST" action="/dashboard/trips/{{ trip.id }}/update-node/">
+            {% csrf_token %}
+            <select name="node_id">
+                {% for node in route_nodes %}
+                <option value="{{ node.id }}">{{ node.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Update Position</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Carpool Requests Near Your Route</h2>
+        {% if requests %}
+        <table>
+            <tr>
+                <th>Passenger</th>
+                <th>Pickup</th>
+                <th>Dropoff</th>
+                <th>Detour (hops)</th>
+                <th>Fare ($)</th>
+                <th>Action</th>
+            </tr>
+            {% for req in requests %}
+            <tr>
+                <td>{{ req.passenger }}</td>
+                <td>{{ req.pickup }}</td>
+                <td>{{ req.dropoff }}</td>
+                <td>{{ req.detour }}</td>
+                <td>${{ req.fare }}</td>
+                <td>
+                    <form method="POST" action="/dashboard/trips/{{ trip.id }}/offer/{{ req.request_id }}/">
+                        {% csrf_token %}
+                        <input type="hidden" name="detour" value="{{ req.detour }}">
+                        <input type="hidden" name="fare" value="{{ req.fare }}">
+                        <button type="submit" class="btn btn-success">Make Offer</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No matching carpool requests near your route.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Passenger Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        h1, h2 { color: #333; }
+        .card { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 4px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        .badge-pending { background: #ffc107; }
+        .badge-confirmed { background: #28a745; color: white; }
+        .badge-cancelled { background: #dc3545; color: white; }
+        nav { background: #343a40; padding: 10px 20px; margin: -20px -20px 20px -20px; }
+        nav a { color: white; text-decoration: none; margin-right: 20px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/dashboard/passenger/">Dashboard</a>
+    </nav>
+
+    <h1>Welcome, {{ user.username }}</h1>
+
+    <div class="card">
+        <h2>New Carpool Request</h2>
+        <form method="POST" action="/dashboard/requests/create/">
+            {% csrf_token %}
+            <label>Pickup Node:</label>
+            <select name="pickup_node">
+                {% for node in nodes %}
+                <option value="{{ node.id }}">{{ node.name }}</option>
+                {% endfor %}
+            </select>
+            &nbsp;
+            <label>Dropoff Node:</label>
+            <select name="dropoff_node">
+                {% for node in nodes %}
+                <option value="{{ node.id }}">{{ node.name }}</option>
+                {% endfor %}
+            </select>
+            &nbsp;
+            <button type="submit" class="btn btn-primary">Submit Request</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>My Requests</h2>
+        {% if carpool_requests %}
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Pickup</th>
+                <th>Dropoff</th>
+                <th>Status</th>
+                <th>Offers</th>
+                <th>Actions</th>
+            </tr>
+            {% for req in carpool_requests %}
+            <tr>
+                <td>{{ req.id }}</td>
+                <td>{{ req.pickup_node.name }}</td>
+                <td>{{ req.dropoff_node.name }}</td>
+                <td><span class="badge badge-{{ req.status }}">{{ req.status }}</span></td>
+                <td>
+                    {% for offer in req.offers.all %}
+                        {% if offer.status == 'offered' %}
+                        Driver: {{ offer.trip.driver.username }} |
+                        Detour: {{ offer.detour }} hops |
+                        Fare: ${{ offer.fare }}
+                        <form method="POST" action="/dashboard/offers/{{ offer.id }}/confirm/" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">Accept</button>
+                        </form>
+                        <br>
+                        {% endif %}
+                    {% empty %}
+                        No offers yet
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if req.status == 'pending' %}
+                    <form method="POST" action="/dashboard/requests/{{ req.id }}/cancel/" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Cancel</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No requests yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
