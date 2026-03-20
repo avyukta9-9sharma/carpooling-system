@@ -513,3 +513,49 @@ def confirm_offer_view(request, offer_id):
 def logout_view_page(request):
     auth_logout(request)
     return redirect('/dashboard/login/')
+# WALLET VIEWS
+
+from .models import Wallet, Transaction
+
+def get_or_create_wallet(user):
+    wallet, created = Wallet.objects.get_or_create(user=user)
+    return wallet
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def wallet_balance(request):
+    wallet = get_or_create_wallet(request.user)
+    return Response({'balance': wallet.balance})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def topup_wallet(request):
+    amount = float(request.data.get('amount', 0))
+    if amount <= 0:
+        return Response({'error': 'Amount must be positive'}, status=status.HTTP_400_BAD_REQUEST)
+    wallet = get_or_create_wallet(request.user)
+    wallet.balance += amount
+    wallet.save()
+    Transaction.objects.create(
+        user=request.user,
+        amount=amount,
+        transaction_type='topup',
+        description=f'Wallet top up of ${amount}'
+    )
+    return Response({'message': f'Wallet topped up by ${amount}', 'new_balance': wallet.balance})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def transaction_history(request):
+    transactions = Transaction.objects.filter(user=request.user).order_by('-created_at')
+    data = [{
+        'id': t.id,
+        'type': t.transaction_type,
+        'amount': t.amount,
+        'description': t.description,
+        'created_at': t.created_at
+    } for t in transactions]
+    return Response(data)

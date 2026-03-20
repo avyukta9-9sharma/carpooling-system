@@ -26,4 +26,8 @@ urlpatterns = [
 
     # Offers (Passenger confirms)
     path('offers/<int:offer_id>/confirm/', views.confirm_offer, name='confirm-offer'),
+
+path('wallet/', views.wallet_balance, name='wallet-balance'),
+path('wallet/topup/', views.topup_wallet, name='wallet-topup'),
+path('wallet/transactions/', views.transaction_history, name='transaction-history'),
 ]

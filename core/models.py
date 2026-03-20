@@ -82,3 +82,26 @@ class CarpoolOffer(models.Model):
 
     def __str__(self):
         return f"Offer from {self.trip.driver.username} to {self.request.passenger.username}"
+class Wallet(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
+    balance = models.FloatField(default=0.0)
+
+    def __str__(self):
+        return f"{self.user.username}'s wallet - ${self.balance}"
+
+
+class Transaction(models.Model):
+    TYPE_CHOICES = (
+        ('topup', 'Top Up'),
+        ('fare_deduction', 'Fare Deduction'),
+        ('driver_earning', 'Driver Earning'),
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
+    amount = models.FloatField()
+    transaction_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    trip = models.ForeignKey(Trip, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
+    created_at = models.DateTimeField(auto_now_add=True)
+    description = models.CharField(max_length=200, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.transaction_type} - ${self.amount}"
