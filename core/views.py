@@ -305,6 +305,13 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.shortcuts import redirect
 
 def login_page(request):
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect('/admin/')
+        elif request.user.role == 'driver':
+            return redirect('/dashboard/driver/')
+        else:
+            return redirect('/dashboard/passenger/')
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
