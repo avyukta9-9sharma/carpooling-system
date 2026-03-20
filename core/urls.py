@@ -15,6 +15,7 @@ urlpatterns = [
 
     # Trips (Driver)
     path('trips/', views.trip_list, name='trip-list'),
+    path('trips/available/', views.available_trips, name='available-trips'),
     path('trips/<int:pk>/cancel/', views.cancel_trip, name='cancel-trip'),
     path('trips/<int:pk>/update-node/', views.update_current_node, name='update-node'),
     path('trips/<int:trip_id>/requests/', views.incoming_requests, name='incoming-requests'),
@@ -27,7 +28,8 @@ urlpatterns = [
     # Offers (Passenger confirms)
     path('offers/<int:offer_id>/confirm/', views.confirm_offer, name='confirm-offer'),
 
-path('wallet/', views.wallet_balance, name='wallet-balance'),
-path('wallet/topup/', views.topup_wallet, name='wallet-topup'),
-path('wallet/transactions/', views.transaction_history, name='transaction-history'),
+    # Wallet
+    path('wallet/', views.wallet_balance, name='wallet-balance'),
+    path('wallet/topup/', views.topup_wallet, name='wallet-topup'),
+    path('wallet/transactions/', views.transaction_history, name='transaction-history'),
 ]

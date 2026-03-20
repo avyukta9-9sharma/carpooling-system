@@ -559,3 +559,67 @@ def transaction_history(request):
         'created_at': t.created_at
     } for t in transactions]
     return Response(data)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def available_trips(request):
+    if request.user.role != 'passenger':
+        return Response({'error': 'Passengers only'}, status=status.HTTP_403_FORBIDDEN)
+
+    pickup_id = request.query_params.get('pickup_node')
+    dropoff_id = request.query_params.get('dropoff_node')
+
+    if not pickup_id or not dropoff_id:
+        return Response({'error': 'pickup_node and dropoff_node are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    pickup_node = get_object_or_404(Node, pk=pickup_id)
+    dropoff_node = get_object_or_404(Node, pk=dropoff_id)
+
+    # Get both scheduled and active trips
+    trips = Trip.objects.filter(
+        status__in=['scheduled', 'active']
+    ).select_related('driver', 'start_node', 'end_node', 'current_node')
+
+    result = []
+    for trip in trips:
+        current_index = trip.route.index(trip.current_node.id) if trip.current_node else 0
+        remaining_route_ids = trip.route[current_index:]
+        remaining_nodes = list(Node.objects.filter(id__in=remaining_route_ids))
+        nearby_nodes = get_nodes_within_distance(remaining_nodes, max_distance=2)
+
+        if pickup_node not in nearby_nodes or dropoff_node not in nearby_nodes:
+            continue
+
+        new_route = bfs(trip.current_node, pickup_node)
+        if not new_route:
+            continue
+        to_dropoff = bfs(pickup_node, dropoff_node)
+        if not to_dropoff:
+            continue
+        to_end = bfs(dropoff_node, trip.end_node)
+        if not to_end:
+            continue
+
+        original_remaining = len(remaining_route_ids)
+        new_remaining = len(new_route) + len(to_dropoff) + len(to_end) - 2
+        detour = new_remaining - original_remaining
+
+        pickup_index = len(new_route) - 1
+        dropoff_index = pickup_index + len(to_dropoff) - 1
+        fare = calculate_fare(
+            new_route + to_dropoff[1:] + to_end[1:],
+            pickup_index,
+            dropoff_index
+        )
+
+        result.append({
+            'trip_id': trip.id,
+            'driver': trip.driver.username,
+            'from': trip.start_node.name,
+            'to': trip.end_node.name,
+            'status': trip.status,
+            'current_node': trip.current_node.name if trip.current_node else None,
+            'detour': detour,
+            'fare': fare
+        })
+
+    return Response(result)
