@@ -105,3 +105,18 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.transaction_type} - ${self.amount}"
+    
+class Rating(models.Model):
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='ratings')
+    rated_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings_given')
+    rated_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings_received')
+    score = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('trip', 'rated_by', 'rated_user')
+
+    def __str__(self):
+        return f"{self.rated_by.username} rated {self.rated_user.username} {self.score}/5"
+    

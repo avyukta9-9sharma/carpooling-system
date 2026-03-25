@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from .models import User, Node, Edge, Trip, CarpoolRequest, CarpoolOffer
+from .models import User, Node, Edge, Trip, CarpoolRequest, CarpoolOffer, Wallet, Transaction, Rating
 from .serializers import (UserSerializer, NodeSerializer, EdgeSerializer,
                           TripSerializer, CarpoolRequestSerializer, CarpoolOfferSerializer)
 from .utils import bfs, get_nodes_within_distance, calculate_fare
@@ -630,3 +630,59 @@ def available_trips(request):
         })
 
     return Response(result)
+# RATING VIEWS
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def submit_rating(request, trip_id):
+    trip = get_object_or_404(Trip, pk=trip_id)
+    rated_user_id = request.data.get('rated_user')
+    score = request.data.get('score')
+    comment = request.data.get('comment', '')
+
+    if not score or int(score) not in range(1, 6):
+        return Response({'error': 'Score must be between 1 and 5'}, status=status.HTTP_400_BAD_REQUEST)
+
+    rated_user = get_object_or_404(User, pk=rated_user_id)
+
+    if Rating.objects.filter(trip=trip, rated_by=request.user, rated_user=rated_user).exists():
+        return Response({'error': 'You have already rated this user for this trip'}, status=status.HTTP_400_BAD_REQUEST)
+
+    rating = Rating.objects.create(
+        trip=trip,
+        rated_by=request.user,
+        rated_user=rated_user,
+        score=int(score),
+        comment=comment
+    )
+    return Response({
+        'message': 'Rating submitted successfully',
+        'score': rating.score,
+        'comment': rating.comment
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_ratings(request, user_id):
+    user = get_object_or_404(User, pk=user_id)
+    ratings = Rating.objects.filter(rated_user=user).select_related('rated_by', 'trip')
+    total = ratings.count()
+    if total == 0:
+        avg = 0
+    else:
+        avg = round(sum(r.score for r in ratings) / total, 2)
+
+    data = {
+        'user': user.username,
+        'average_score': avg,
+        'total_ratings': total,
+        'ratings': [{
+            'score': r.score,
+            'comment': r.comment,
+            'rated_by': r.rated_by.username,
+            'trip_id': r.trip.id,
+            'created_at': r.created_at
+        } for r in ratings]
+    }
+    return Response(data)

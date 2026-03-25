@@ -32,4 +32,7 @@ urlpatterns = [
     path('wallet/', views.wallet_balance, name='wallet-balance'),
     path('wallet/topup/', views.topup_wallet, name='wallet-topup'),
     path('wallet/transactions/', views.transaction_history, name='transaction-history'),
+    # Ratings
+    path('trips/<int:trip_id>/rate/', views.submit_rating, name='submit-rating'),
+    path('users/<int:user_id>/ratings/', views.user_ratings, name='user-ratings'),
 ]
