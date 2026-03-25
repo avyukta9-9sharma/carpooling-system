@@ -15,4 +15,5 @@ urlpatterns = [
     path('requests/create/', views.create_request_view, name='create-request-view'),
     path('requests/<int:pk>/cancel/', views.cancel_request_view, name='cancel-request-view'),
     path('offers/<int:offer_id>/confirm/', views.confirm_offer_view, name='confirm-offer-view'),
+    path('map/', views.network_map, name='network-map'),
 ]

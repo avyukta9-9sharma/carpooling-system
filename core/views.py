@@ -686,3 +686,7 @@ def user_ratings(request, user_id):
         } for r in ratings]
     }
     return Response(data)
+def network_map(request):
+    if not request.user.is_authenticated:
+        return redirect('/dashboard/login/')
+    return render(request, 'core/network_map.html')
