@@ -12,6 +12,9 @@ A Django-based carpooling system where drivers publish trips along a road networ
 
 ---
 
+## Live Demo
+https://dvmcarpooling.me/dashboard/login/
+
 ## Features Implemented
 
 ### Phase 1 — Core System ✅
@@ -148,6 +151,5 @@ Visit `/admin` and login with superuser credentials to manage nodes, edges, trip
 
 ---
 
-## What's Not Implemented
-
-- Phase 3: Docker, VPS deployment, Nginx, Gunicorn, SSL *(coming soon)*
+### Phase 3 ✅ 
+- Docker + Nginx + Gunicorn + DigitalOcean VPS + domain + SSL
