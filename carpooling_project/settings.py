@@ -146,3 +146,8 @@ LOGIN_REDIRECT_URL = '/dashboard/login/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/dashboard/login/'
 SOCIALACCOUNT_AUTO_SIGNUP = True
 LOGIN_REDIRECT_URL = '/dashboard/login/'
+# Static files for production
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Allow all hosts for now (we'll restrict later)
+ALLOWED_HOSTS = ['*']
