@@ -16,4 +16,5 @@ urlpatterns = [
     path('requests/<int:pk>/cancel/', views.cancel_request_view, name='cancel-request-view'),
     path('offers/<int:offer_id>/confirm/', views.confirm_offer_view, name='confirm-offer-view'),
     path('map/', views.network_map, name='network-map'),
+    path('set-role/', views.set_role, name='set-role'),
 ]

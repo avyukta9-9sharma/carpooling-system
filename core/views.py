@@ -310,8 +310,10 @@ def login_page(request):
             return redirect('/admin/')
         elif request.user.role == 'driver':
             return redirect('/dashboard/driver/')
-        else:
+        elif request.user.role == 'passenger':
             return redirect('/dashboard/passenger/')
+        else:
+            return redirect('/dashboard/set-role/')  
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -690,3 +692,15 @@ def network_map(request):
     if not request.user.is_authenticated:
         return redirect('/dashboard/login/')
     return render(request, 'core/network_map.html')
+def set_role(request):
+    if not request.user.is_authenticated:
+        return redirect('/dashboard/login/')
+    if request.method == 'POST':
+        role = request.POST.get('role')
+        if role in ['driver', 'passenger']:
+            request.user.role = role
+            request.user.save()
+            if role == 'driver':
+                return redirect('/dashboard/driver/')
+            return redirect('/dashboard/passenger/')
+    return render(request, 'core/set_role.html')
