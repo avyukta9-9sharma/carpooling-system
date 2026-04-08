@@ -308,12 +308,12 @@ def login_page(request):
     if request.user.is_authenticated:
         if request.user.is_staff:
             return redirect('/admin/')
+        elif not request.user.role:
+            return redirect('/dashboard/set-role/')
         elif request.user.role == 'driver':
             return redirect('/dashboard/driver/')
-        elif request.user.role == 'passenger':
-            return redirect('/dashboard/passenger/')
         else:
-            return redirect('/dashboard/set-role/')  
+            return redirect('/dashboard/passenger/')  
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -703,4 +703,16 @@ def set_role(request):
             if role == 'driver':
                 return redirect('/dashboard/driver/')
             return redirect('/dashboard/passenger/')
-    return render(request, 'core/set_role.html')
+    return render(request, 'core/set_role.html', {'user': request.user})
+def switch_role(request):
+    if not request.user.is_authenticated:
+        return redirect('/dashboard/login/')
+    if request.method == 'POST':
+        role = request.POST.get('role')
+        if role in ['driver', 'passenger']:
+            request.user.role = role
+            request.user.save()
+            if role == 'driver':
+                return redirect('/dashboard/driver/')
+            return redirect('/dashboard/passenger/')
+    return render(request, 'core/set_role.html', {'user': request.user, 'switching': True})

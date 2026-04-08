@@ -17,4 +17,5 @@ urlpatterns = [
     path('offers/<int:offer_id>/confirm/', views.confirm_offer_view, name='confirm-offer-view'),
     path('map/', views.network_map, name='network-map'),
     path('set-role/', views.set_role, name='set-role'),
+    path('switch-role/', views.switch_role, name='switch-role'),
 ]

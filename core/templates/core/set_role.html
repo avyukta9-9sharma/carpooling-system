@@ -4,25 +4,34 @@
   <title>Choose Your Role</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 320px; text-align: center; }
-    h1 { color: #333; margin-bottom: 10px; }
-    p { color: #666; margin-bottom: 25px; }
-    .btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; color: white; }
+    .card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 340px; text-align: center; }
+    h1 { color: #333; margin-bottom: 10px; font-size: 24px; }
+    p { color: #666; margin-bottom: 25px; font-size: 15px; }
+    .btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; color: white; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.85; }
     .btn-driver { background: #007bff; }
-    .btn-driver:hover { background: #0056b3; }
     .btn-passenger { background: #28a745; }
-    .btn-passenger:hover { background: #1e7e34; }
+    .current { font-size: 13px; color: #999; margin-top: 15px; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Welcome!</h1>
-    <p>You signed in with Google. Please choose your role to continue:</p>
+    <h1>{% if switching %}Switch Role{% else %}Welcome!{% endif %}</h1>
+    <p>
+      {% if switching %}
+        You are currently a <strong>{{ user.role }}</strong>. Choose a new role:
+      {% else %}
+        You signed in with Google. Please choose your role to continue:
+      {% endif %}
+    </p>
     <form method="POST">
       {% csrf_token %}
-      <button type="submit" name="role" value="driver" class="btn btn-driver">🚗 I'm a Driver</button>
-      <button type="submit" name="role" value="passenger" class="btn btn-passenger">🧍 I'm a Passenger</button>
+      <button type="submit" name="role" value="driver" class="btn btn-driver">🚗 I am a Driver</button>
+      <button type="submit" name="role" value="passenger" class="btn btn-passenger">🧍 I am a Passenger</button>
     </form>
+    {% if switching %}
+    <p class="current"><a href="/dashboard/{% if user.role == 'driver' %}driver{% else %}passenger{% endif %}/">Cancel — go back to dashboard</a></p>
+    {% endif %}
   </div>
 </body>
 </html>
